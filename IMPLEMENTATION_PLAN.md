@@ -88,18 +88,19 @@ index.js
 
 ---
 
-### **Phase 2: Data Layer** ⏱️ Est. 2-3 sessions
+### **Phase 2: Data Layer** ⏱️ Est. 2-3 sessions COMPLETED ✅
 
 **Goal:** Implement all Node.js data fetcher scripts (no LLM)
 
 **Deliverables:**
-- [ ] Pool scanner (Meteora API)
-- [ ] Price fetcher (Dexscreener API)
-- [ ] Volume tracker (Dexscreener API)
-- [ ] Token metrics fetcher (Solscan API)
-- [ ] Data aggregation & filtering logic
-- [ ] Basic error handling & retry logic
-- [ ] Test: Fetch real data, filter pools, emit data:ready event
+- [x] Pool scanner (Meteora API)
+- [x] Price fetcher (Dexscreener API)
+- [x] Volume tracker (Dexscreener API)
+- [x] Token metrics fetcher (Solscan API)
+- [x] Data aggregation & filtering logic (`aggregator-v2.js`)
+- [x] LP Agent fetcher (`lpAgentFetcher.js`) — bonus
+- [x] Basic error handling & retry logic
+- [x] Test: Fetch real data, filter pools, emit data:ready event
 
 **Files to create:**
 ```
@@ -174,31 +175,64 @@ GROQ_API_KEY (for Kimi K2)
 
 ---
 
-### **Phase 4: Decision Agents** ⏱️ Est. 3-4 sessions
+### **Phase 4: Decision Agents** ⏱️ Est. 3-4 sessions ✅ COMPLETED
 
-**Goal:** Implement Risk Agent & Strategy Agent with Rug Me logic
+**Goal:** Implement RiskAgent + StrategyAgent dengan Copy Top LPers strategy
+
+**Status:** ✅ COMPLETED (2026-03-30)
+
+**Architecture:**
+```
+ScoutAgent output + Top LPers data
+    ↓
+RiskAgent (GLM-5/Modal key 2) — approve/reject pool
+    ↓ (approved)
+StrategyAgent (GLM-5/Modal key 3) — copy top LPer: entry, bin step, SL/TP, DCA
+    ↓
+DecisionOrchestrator — compile final recommendation
+    ↓
+MotherAgent
+```
 
 **Deliverables:**
-- [ ] Risk Agent (Qwen3-32B via Groq)
-- [ ] Strategy Agent (GLM-5 via Modal key 2)
-- [ ] Rug Me strategy config (JSON)
-- [ ] Strategy matching logic
-- [ ] DCA calculation (rolling positions)
-- [ ] Exit condition evaluation
-- [ ] Confidence score calculation
-- [ ] Test: Agents make decisions, emit recommendations
+- [x] Fix bug `pool_validation` di `decisionAgent.js` (semua pool reject)
+- [x] `modalClient.js` provider
+- [x] RiskAgent (GLM-5 Modal key 2)
+- [x] StrategyAgent (GLM-5 Modal key 3)
+- [x] DecisionOrchestrator
+- [x] `prompts.js` (Risk + Strategy prompts)
+- [x] Copy-top-LPs matching logic
+- [x] DCA calculation (triggered by price drop %)
+- [x] Exit condition (SL/TP % based + max hold time)
+- [x] Confidence score calculation
+- [x] Test: agents make real LLM decisions, emit recommendations
 
-**Files to create:**
+**Files created:**
 ```
+src/providers/modalClient.js
 src/agents/decision/riskAgent.js
 src/agents/decision/strategyAgent.js
+src/agents/decision/decisionOrchestrator.js
 src/agents/decision/prompts.js
+tests/unit/providers/test-modalClient.js
+tests/unit/agents/test-riskAgent.js
+tests/unit/agents/test-strategyAgent.js
+tests/unit/agents/test-decisionOrchestrator.js
 ```
 
-**Env vars needed:**
+**Env vars used:**
 ```bash
-GROQ_API_KEY
-MODAL_API_KEY_2
+MODAL_API_KEY_2    # RiskAgent
+MODAL_API_KEY_3    # StrategyAgent
+```
+
+**Test Results:**
+```
+✅ RiskAgent: Approved pool with risk score 7.5/10
+✅ StrategyAgent: Copy top LPers strategy formulated
+✅ DecisionOrchestrator: Pipeline working end-to-end
+✅ pool_validation bug fixed
+✅ All agents making real LLM decisions
 ```
 
 ---
@@ -230,17 +264,17 @@ MODAL_API_KEY_1
 
 ---
 
-### **Phase 6: Telegram Bot** ⏱️ Est. 2-3 sessions
+### **Phase 6: Telegram Bot** ⏱️ Est. 2-3 sessions 🚧 Partial
 
 **Goal:** Implement Telegram notification & manual intervention
 
 **Deliverables:**
-- [x ] Telegram bot setup
-- [x ] Notification formatting
-- [x ] Manual review flow (pause cycle, wait response)
+- [x] Telegram bot setup (`src/telegram/telegramBot.js`)
+- [x] Notification formatting
+- [x] Manual review flow (pause cycle, wait response)
 - [ ] User commands: `gas`, `reject`, `stop`
-- [x ] Timeout logic (5 minutes)
-- [x ] Test: User can approve/reject via Telegram
+- [x] Timeout logic (5 minutes)
+- [x] Test: User can approve/reject via Telegram
 
 **Files to create:**
 ```
@@ -255,15 +289,15 @@ TELEGRAM_CHAT_ID
 
 ---
 
-### **Phase 7: Execution Agents** ⏱️ Est. 3-4 sessions
+### **Phase 7: Execution Agents** ⏱️ Est. 3-4 sessions 🚧 Partial
 
 **Goal:** Implement Portfolio & Execution agents for paper trading
 
 **Deliverables:**
-- [ ] Paper trading state manager
-- [ ] Starting balance tracking (100 SOL)
-- [ ] Portfolio Agent (Step 3.5 Flash via OpenRouter)
-- [ ] Execution Agent (Gemini 2.5 Flash via Google AI)
+- [x] Paper trading engine (`paperTradingEngine.js`)
+- [x] Position monitor (`positionMonitor.js`)
+- [ ] ExecutionAgent LLM integration (Llama 3.3 70B/Groq) — belum
+- [ ] SL/TP dynamic via LLM — belum
 - [ ] DLMM position simulation (full simulation)
 - [ ] Fee tracking via Meteora API
 - [ ] Position scaling logic (rolling positions)
@@ -660,3 +694,4 @@ module.exports = {
         └── providers
             ├── test-groqClient.js
             └── test-zaiClient.js
+
