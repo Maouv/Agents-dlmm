@@ -1,0 +1,29 @@
+{
+  "name": "dlmm-paper-trader",
+  "version": "1.0.0",
+  "description": "DLMM Paper Trading Multi-Agent System",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "dlmm",
+    "paper-trading",
+    "multi-agent",
+    "meteora",
+    "solana"
+  ],
+  "author": "Maou",
+  "license": "MIT",
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "dotenv": "^16.4.5",
+    "node-telegram-bot-api": "^0.66.0",
+    "telegraf": "^4.16.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
