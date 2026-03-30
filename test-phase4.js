@@ -39,9 +39,9 @@ async function testPhase4() {
         volume_24h: 120000,
         market_cap: 850000,
         volatility: 1.65,
-        fee_tvl_ratio: 0.15,
-        pool_validation: { isValid: true }
+        fee_tvl_ratio: 0.15
       },
+      pool_validation: { isValid: true },
       reasoning: 'Strong LPers data with 68% win rate'
     };
 

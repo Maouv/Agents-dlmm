@@ -160,6 +160,7 @@ class ScoutAgent {
             volatility: pool.volatility,
             fee_tvl_ratio: pool.fee_tvl_ratio
           },
+          pool_validation: pool.pool_validation || { isValid: true, active_bin_id: 25 },
           reasoning: analysis.reasoning,
           risk_factors: analysis.risk_factors || [],
           confidence: analysis.confidence || 'medium',
@@ -285,6 +286,7 @@ OUTPUT: Return ONLY valid JSON array, one object per pool.`;
         volatility: pool.volatility,
         fee_tvl_ratio: pool.fee_tvl_ratio
       },
+      pool_validation: pool.pool_validation || { isValid: true, active_bin_id: 25 },
       reasoning: reasoning,
       risk_factors: [],
       confidence: 'medium',

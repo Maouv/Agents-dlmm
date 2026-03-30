@@ -169,7 +169,7 @@ class DecisionAgent {
     }
 
     // Pool validation
-    if (!rec.pool_metrics.pool_validation || !rec.pool_metrics.pool_validation.isValid) {
+    if (!rec.pool_validation || !rec.pool_validation.isValid) {
       checks.pool_valid = false;
       warnings.push('Pool validation failed');
       passed = false;
