@@ -17,6 +17,10 @@ class ModalClient extends LLMProvider {
       try {
         logger.debug(`Modal API attempt ${attempt}/${retries}`);
 
+        // Create AbortController for timeout (180s for GLM-5)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes
+
         const response = await fetch(`${this.baseURL}/chat/completions`, {
           method: 'POST',
           headers: {
@@ -31,8 +35,11 @@ class ModalClient extends LLMProvider {
             ],
             temperature: this.temperature,
             max_tokens: this.maxTokens
-          })
+          }),
+          signal: controller.signal
         });
+
+        clearTimeout(timeoutId); // Clear timeout if request completes
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -63,6 +70,19 @@ class ModalClient extends LLMProvider {
         return content;
 
       } catch (error) {
+        // Handle timeout/abort errors
+        if (error.name === 'AbortError') {
+          const timeoutError = new Error('Modal API request timeout (180s)');
+          if (attempt === retries) {
+            logger.error('Modal API timeout', { attempt });
+            throw timeoutError;
+          } else {
+            logger.warn(`Modal API timeout on attempt ${attempt} - Retrying...`);
+            await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+            continue;
+          }
+        }
+
         if (attempt === retries) {
           logger.error('Modal API error', {
             message: error.message,
