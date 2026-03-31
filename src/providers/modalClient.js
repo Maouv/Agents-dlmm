@@ -80,7 +80,8 @@ class ModalClient extends LLMProvider {
               { role: 'user', content: userPrompt }
             ],
             temperature: this.temperature,
-            max_tokens: this.maxTokens
+            max_tokens: this.maxTokens,
+            response_format: { type: "json_object" } // Force JSON output
           }),
           signal: controller.signal
         });
