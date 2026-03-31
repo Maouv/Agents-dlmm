@@ -6,13 +6,59 @@ class ModalClient extends LLMProvider {
     super(config);
     this.apiKey = config.apiKey || process.env.MODAL_API_KEY_1; // Default to key 1
     this.baseURL = config.baseURL || 'https://api.us-west-2.modal.direct/v1';
+    this.warmedUp = false;
 
     if (!this.apiKey) {
       logger.warn('MODAL_API_KEY not set - LLM features will fail');
     }
   }
 
-  async generate(systemPrompt, userPrompt, retries = 2) {
+  /**
+   * Warm-up Modal container with ping request
+   * Helps avoid 502 errors from cold starts
+   */
+  async warmup() {
+    if (this.warmedUp) return;
+
+    try {
+      logger.debug('Warming up Modal container...');
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout for warmup
+
+      const response = await fetch(`${this.baseURL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages: [{ role: 'user', content: 'ping' }],
+          temperature: 0.1,
+          max_tokens: 5
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        logger.debug('Modal container warmed up successfully');
+        this.warmedUp = true;
+      } else {
+        logger.warn('Modal warmup failed (non-critical)', { status: response.status });
+      }
+    } catch (error) {
+      logger.warn('Modal warmup error (non-critical)', { message: error.message });
+      // Don't throw - warmup failure is not critical
+    }
+  }
+
+  async generate(systemPrompt, userPrompt, retries = 5) {
+    // Warm-up container before main request
+    await this.warmup();
+
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
         logger.debug(`Modal API attempt ${attempt}/${retries}`);
@@ -45,10 +91,11 @@ class ModalClient extends LLMProvider {
           const errorData = await response.json().catch(() => ({}));
           const errorMsg = `Modal API error ${response.status}: ${errorData.error?.message || response.statusText}`;
 
-          // Retry on 502, 503, 504 (server errors)
+          // Retry on 502, 503, 504 (server errors) with exponential backoff
           if ([502, 503, 504].includes(response.status) && attempt < retries) {
-            logger.warn(`${errorMsg} - Retrying in ${attempt * 2}s...`);
-            await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+            const delay = Math.pow(2, attempt) * 2500; // 5s, 10s, 20s, 40s
+            logger.warn(`${errorMsg} - Retrying in ${delay/1000}s (attempt ${attempt}/${retries})...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
             continue;
           }
 
@@ -90,8 +137,9 @@ class ModalClient extends LLMProvider {
           });
           throw error;
         } else {
-          logger.warn(`Modal API attempt ${attempt} failed: ${error.message} - Retrying...`);
-          await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+          const delay = Math.pow(2, attempt) * 2500; // 5s, 10s, 20s, 40s
+          logger.warn(`Modal API attempt ${attempt} failed: ${error.message} - Retrying in ${delay/1000}s...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
     }

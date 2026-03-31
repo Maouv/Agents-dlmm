@@ -13,7 +13,7 @@ class RiskAgent {
     this.llmClient = new ModalClient({
       model: this.model,
       temperature: this.temperature,
-      maxTokens: 1000,
+      maxTokens: 300, // Trim to 200-300 tokens for faster response
       apiKey: process.env.MODAL_API_KEY_2
     });
 

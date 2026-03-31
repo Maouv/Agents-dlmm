@@ -14,7 +14,7 @@ class StrategyAgent {
     this.llmClient = new ModalClient({
       model: this.model,
       temperature: this.temperature,
-      maxTokens: 1500,
+      maxTokens: 500, // Reduced from 1500 for faster response
       apiKey: process.env.MODAL_API_KEY_3
     });
 

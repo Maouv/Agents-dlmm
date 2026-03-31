@@ -3,6 +3,7 @@ const logger = require('./src/utils/logger');
 const eventBus = require('./src/core/eventBus');
 const decisionOrchestrator = require('./src/agents/decision/decisionOrchestrator');
 const memoryAgent = require('./src/agents/memory/memoryAgent');
+const ModalClient = require('./src/providers/modalClient');
 
 // Test Phase 4: Decision Agents Pipeline
 async function testPhase4() {
@@ -11,7 +12,33 @@ async function testPhase4() {
   logger.info('='.repeat(60));
 
   try {
-    logger.info('\nTest 1: DecisionOrchestrator - Full Pipeline');
+    // Pre-warm Modal containers to avoid 502 cold start errors
+    logger.info('\nPre-warming Modal containers (avoiding cold start 502 errors)...');
+    logger.info('-'.repeat(60));
+
+    const warmupClient1 = new ModalClient({
+      model: 'zai-org/GLM-5-FP8',
+      temperature: 0.2,
+      maxTokens: 10,
+      apiKey: process.env.MODAL_API_KEY_2
+    });
+
+    const warmupClient2 = new ModalClient({
+      model: 'zai-org/GLM-5-FP8',
+      temperature: 0.2,
+      maxTokens: 10,
+      apiKey: process.env.MODAL_API_KEY_3
+    });
+
+    // Warm up both containers in parallel
+    await Promise.all([
+      warmupClient1.warmup(),
+      warmupClient2.warmup()
+    ]);
+
+    logger.success('Modal containers warmed up successfully\n');
+
+    logger.info('Test 1: DecisionOrchestrator - Full Pipeline');
     logger.info('-'.repeat(60));
 
     // Mock ScoutAgent recommendation
