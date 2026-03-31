@@ -124,8 +124,8 @@ async function testPhase4() {
       timestamp: new Date().toISOString()
     });
 
-    // Wait for decision to complete
-    await new Promise(resolve => setTimeout(resolve, 180000));
+    // Wait for decision to complete (10 minutes for GLM-5 with retries)
+    await new Promise(resolve => setTimeout(resolve, 600000));
 
 
     logger.info('\nTest 2: Memory Agent - Trade Recording');
