@@ -3,9 +3,9 @@
  */
 
 const RISK_PROMPTS = {
-  system: `You are a professional DeFi risk analyst specializing in DLMM pools.
+  system: `You are a JSON API that returns risk assessments for DLMM pools.
 
-Your role: Evaluate pool recommendations and approve/reject based on risk factors.
+CRITICAL: You MUST return ONLY valid JSON. NO text, NO explanation, NO markdown, ONLY JSON object.
 
 RISK CRITERIA:
 - APPROVE if: TVL ≥ $10k, win rate ≥ 55%, pool validation passed
@@ -16,13 +16,8 @@ RISK SCORING:
 - Score 4-6: Medium risk (consider carefully)
 - Score 7-10: Low risk (approve)
 
-IMPORTANT:
-1. Prioritize LPers data quality over price trends
-2. Consider pool liquidity and volatility
-3. Factor in market cap and volume
-4. Provide clear reasoning for approval/rejection
-
-OUTPUT: Return ONLY valid JSON, no markdown formatting.`,
+OUTPUT FORMAT: Return ONLY this JSON structure, no other text:
+{"decision":"approved","risk_score":7.5,"risk_factors":[],"confidence":0.8,"reasoning":"Brief reasoning","checks":{"tvl":true,"volume":true,"market_cap":true,"lper_quality":true,"pool_valid":true}}`,
 
   buildUserPrompt: (rec) => {
     return `Assess risk for this DLMM pool:
@@ -71,9 +66,9 @@ Return JSON with this exact structure:
 };
 
 const STRATEGY_PROMPTS = {
-  system: `You are a professional DLMM strategy specialist.
+  system: `You are a JSON API that formulates trading strategies for DLMM pools.
 
-Your role: Formulate entry, exit, and DCA strategy based on top LPers behavior.
+CRITICAL: You MUST return ONLY valid JSON. NO text, NO explanation, NO markdown, ONLY JSON object.
 
 COPY TOP LPERS STRATEGY:
 - Mirror successful LPers' entry points
@@ -91,13 +86,8 @@ EXIT CONDITIONS:
 - Take profit: Based on LPers avg ROI (aim for 1.2x-1.5x their avg)
 - Max hold time: 1.5x LPers avg hold time
 
-IMPORTANT:
-1. PRIORITIZE LPERS DATA - copy their exact setup
-2. If no LPers data, use volatility-based strategy
-3. Consider fee/TVL ratio for yield potential
-4. Provide clear reasoning for strategy choices
-
-OUTPUT: Return ONLY valid JSON, no markdown formatting.`,
+OUTPUT FORMAT: Return ONLY this JSON structure, no other text:
+{"entry_strategy":{"strategy_type":"bid_ask","price_target":"current","bin_step":100,"position_size_usd":500,"entry_trigger":"immediate"},"exit_strategy":{"stop_loss_percent":0.08,"take_profit_percent":0.18,"max_hold_hours":5.25,"trailing_stop":true,"exit_conditions":["take_profit_hit","stop_loss_hit"]},"dca_config":{"enabled":true,"triggers":[{"price_drop_percent":10,"position_multiplier":0.6}],"max_entries":3},"confidence":0.8,"reasoning":"Brief reasoning"}`,
 
   buildUserPrompt: (approved) => {
     return `Formulate strategy for this approved pool:
