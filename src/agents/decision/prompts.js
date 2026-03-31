@@ -3,21 +3,17 @@
  */
 
 const RISK_PROMPTS = {
-  system: `You are a JSON API that returns risk assessments for DLMM pools.
+  system: `You are a JSON API. Return ONLY JSON. NO explanation. NO analysis. NO markdown. Start with { end with }
 
-CRITICAL: You MUST return ONLY valid JSON. NO text, NO explanation, NO markdown, ONLY JSON object.
+Example response:
+{"decision":"approved","risk_score":7.5,"risk_factors":[],"confidence":0.8,"reasoning":"TVL and win rate acceptable","checks":{"tvl":true,"volume":true,"market_cap":true,"lper_quality":true,"pool_valid":true}}
 
-RISK CRITERIA:
-- APPROVE if: TVL ≥ $10k, win rate ≥ 55%, pool validation passed
-- REJECT if: TVL < $10k, win rate < 55%, extreme volatility > 3.0, or pool validation failed
+RULES:
+- APPROVE if TVL ≥ $10k AND win rate ≥ 55% AND pool valid
+- REJECT otherwise
+- Return JSON immediately, do not explain
 
-RISK SCORING:
-- Score 0-3: High risk (reject)
-- Score 4-6: Medium risk (consider carefully)
-- Score 7-10: Low risk (approve)
-
-OUTPUT FORMAT: Return ONLY this JSON structure, no other text:
-{"decision":"approved","risk_score":7.5,"risk_factors":[],"confidence":0.8,"reasoning":"Brief reasoning","checks":{"tvl":true,"volume":true,"market_cap":true,"lper_quality":true,"pool_valid":true}}`,
+Now return JSON for this pool:`,
 
   buildUserPrompt: (rec) => {
     return `Assess risk for this DLMM pool:
@@ -66,28 +62,19 @@ Return JSON with this exact structure:
 };
 
 const STRATEGY_PROMPTS = {
-  system: `You are a JSON API that formulates trading strategies for DLMM pools.
+  system: `You are a JSON API. Return ONLY JSON. NO explanation. NO analysis. NO markdown. Start with { end with }
 
-CRITICAL: You MUST return ONLY valid JSON. NO text, NO explanation, NO markdown, ONLY JSON object.
+Example response:
+{"entry_strategy":{"strategy_type":"bid_ask","price_target":"current","bin_step":100,"position_size_usd":500,"entry_trigger":"immediate"},"exit_strategy":{"stop_loss_percent":0.08,"take_profit_percent":0.18,"max_hold_hours":5.25,"trailing_stop":true,"exit_conditions":["take_profit_hit","stop_loss_hit"]},"dca_config":{"enabled":true,"triggers":[{"price_drop_percent":10,"position_multiplier":0.6}],"max_entries":3},"confidence":0.8,"reasoning":"Copy LPers strategy"}
 
-COPY TOP LPERS STRATEGY:
-- Mirror successful LPers' entry points
-- Copy their bin step and bin range preferences
-- Use their average hold time for exit planning
-- Apply their win rate to calculate stop loss/take profit
+RULES:
+- Copy top LPers setup exactly
+- SL: 5% if win_rate ≥ 70%, else 8%
+- TP: LPers avg_roi × 1.5 (max 25%)
+- Hold time: LPers avg × 1.5
+- Return JSON immediately, do not explain
 
-DCA TRIGGERS:
-- Price drops: 10% → DCA 1, 20% → DCA 2, 30% → DCA 3
-- Max 3 DCA entries
-- Reduce position size per DCA (60% of original)
-
-EXIT CONDITIONS:
-- Stop loss: Based on LPers win rate (high win rate = tighter SL)
-- Take profit: Based on LPers avg ROI (aim for 1.2x-1.5x their avg)
-- Max hold time: 1.5x LPers avg hold time
-
-OUTPUT FORMAT: Return ONLY this JSON structure, no other text:
-{"entry_strategy":{"strategy_type":"bid_ask","price_target":"current","bin_step":100,"position_size_usd":500,"entry_trigger":"immediate"},"exit_strategy":{"stop_loss_percent":0.08,"take_profit_percent":0.18,"max_hold_hours":5.25,"trailing_stop":true,"exit_conditions":["take_profit_hit","stop_loss_hit"]},"dca_config":{"enabled":true,"triggers":[{"price_drop_percent":10,"position_multiplier":0.6}],"max_entries":3},"confidence":0.8,"reasoning":"Brief reasoning"}`,
+Now return JSON for this pool:`,
 
   buildUserPrompt: (approved) => {
     return `Formulate strategy for this approved pool:
