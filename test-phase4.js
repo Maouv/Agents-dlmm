@@ -12,33 +12,7 @@ async function testPhase4() {
   logger.info('='.repeat(60));
 
   try {
-    // Pre-warm Modal containers to avoid 502 cold start errors
-    logger.info('\nPre-warming Modal containers (avoiding cold start 502 errors)...');
-    logger.info('-'.repeat(60));
-
-    const warmupClient1 = new ModalClient({
-      model: 'zai-org/GLM-5-FP8',
-      temperature: 0.2,
-      maxTokens: 10,
-      apiKey: process.env.MODAL_API_KEY_2
-    });
-
-    const warmupClient2 = new ModalClient({
-      model: 'zai-org/GLM-5-FP8',
-      temperature: 0.2,
-      maxTokens: 10,
-      apiKey: process.env.MODAL_API_KEY_3
-    });
-
-    // Warm up both containers in parallel
-    await Promise.all([
-      warmupClient1.warmup(),
-      warmupClient2.warmup()
-    ]);
-
-    logger.success('Modal containers warmed up successfully\n');
-
-    logger.info('Test 1: DecisionOrchestrator - Full Pipeline');
+    logger.info('\nTest 1: DecisionOrchestrator - Full Pipeline');
     logger.info('-'.repeat(60));
 
     // Mock ScoutAgent recommendation
