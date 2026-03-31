@@ -103,7 +103,10 @@ class ModalClient extends LLMProvider {
         }
 
         const data = await response.json();
-        const content = data.choices[0]?.message?.content;
+        const message = data.choices[0]?.message;
+
+        // GLM-5 returns content in either 'content' or 'reasoning_content'
+        const content = message?.content || message?.reasoning_content;
 
         if (!content) {
           throw new Error('Empty response from Modal');
@@ -111,7 +114,8 @@ class ModalClient extends LLMProvider {
 
         logger.debug('Modal response received', {
           model: this.model,
-          tokens: data.usage
+          tokens: data.usage,
+          hasReasoning: !!message?.reasoning_content
         });
 
         return content;
